@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Score Invoer Trampoline Valmat Baan 3</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #ffffff;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      background-color: #ffffff;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #ff8800;
+    }
+
+    .button-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #000000;
+      padding: 12px 15px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ff8000;
+      color: white;
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+      background-color: #bcbaba;
+    }
+
+    tr:hover {
+      background-color: #ff8800;
+    }
+
+    input[type="number"] {
+      width: 80px;
+      padding: 5px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    @media screen and (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+      }
+
+      td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+      }
+    }
+  </style>
+  <script>
+    const rounds = [
+  { round: 1, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 2, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 3, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 4, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 5, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 6, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 7, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 8, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 9, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 10, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 11, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 12, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 13, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 14, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 15, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 16, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 17, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 18, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 19, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 20, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 21, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 22, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 23, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 24, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 25, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 26, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 27, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 28, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 29, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 30, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 31, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 32, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 33, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 34, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 35, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 36, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 37, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 38, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 39, team: "", ageCategory: "", level: "", soort: "" },
+  { round: 40, team: "", ageCategory: "", level: "", soort: "" }
+];
+
+
+    function calculateScores(roundIndex) {
+      let jury1 = parseFloat(document.getElementById(`jury1Input${roundIndex}`).value) || 0;
+      let jury2 = parseFloat(document.getElementById(`jury2Input${roundIndex}`).value) || 0;
+      let difficulty = parseFloat(document.getElementById(`difficultyInput${roundIndex}`).value) || 0;
+      let composition = parseFloat(document.getElementById(`compositionInput${roundIndex}`).value) || 0;
+      let bonus = parseFloat(document.getElementById(`bonusInput${roundIndex}`).value) || 0;
+
+      let subJury = 20 - ((jury1 + jury2) / 2);
+      let avgJury = subJury;
+      let subScore = difficulty + composition + bonus;
+      let totalScore = avgJury + subScore;
+
+      document.getElementById(`totalScore${roundIndex}`).innerText = totalScore.toFixed(2);
+      document.getElementById(`subJury${roundIndex}`).innerText = subJury.toFixed(2);
+      document.getElementById(`subScore${roundIndex}`).innerText = subScore.toFixed(2);
+
+      let score = {
+        round: rounds[roundIndex].round,
+        team: rounds[roundIndex].team,
+        avgJury, subJury, difficulty, composition, bonus,
+        subScore, totalScore, jury1, jury2
+      };
+
+      let allMTvalmat = JSON.parse(localStorage.getItem("allMTvalmat")) || [];
+      allMTvalmat = allMTvalmat.filter(s => s.round !== score.round);
+      allMTvalmat.push(score);
+      localStorage.setItem("allMTvalmat", JSON.stringify(allMTvalmat));
+
+      window.dispatchEvent(new Event("scoresUpdated"));
+    }
+
+    function clearScores() {
+      localStorage.removeItem("allMTvalmat");
+      displayScores();
+    }
+
+    function displayScores() {
+  let allScores = JSON.parse(localStorage.getItem("allMTvalmat")) || [];
+  let tableBody = document.getElementById("scoresTableBody");
+  tableBody.innerHTML = "";
+
+  rounds.forEach((round, index) => {
+    let score = allScores.find(s => s.round === round.round) || {};
+
+    let row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${round.round}</td>
+      <td>${round.team}</td>
+      <td>${round.ageCategory}</td>
+      <td>${round.level}</td>
+      <td>${round.soort}</td>
+      <td><span id="totalScore${index}">${score.totalScore || ''}</span></td>
+      <td><input type="number" id="jury1Input${index}" value="" placeholder="Jury 1"></td>
+      <td><input type="number" id="jury2Input${index}" value="" placeholder="Jury 2"></td>
+      <td><span id="subJury${index}">${score.subJury || ''}</span></td>
+      <td><input type="number" id="difficultyInput${index}" value="" placeholder="Moeilijkheid"></td>
+      <td><input type="number" id="compositionInput${index}" value="" placeholder="Samenstelling"></td>
+      <td><input type="number" id="bonusInput${index}" value="" placeholder="Bon/-HJ"></td>
+      <td><span id="subScore${index}">${score.subScore || ''}</span></td>
+      <td><button class="button" onclick="calculateScores(${index})">Opslaan</button></td>
+    `;
+    tableBody.appendChild(row);
+
+    document.getElementById(`jury1Input${index}`).addEventListener('input', () => calculateScores(index));
+    document.getElementById(`jury2Input${index}`).addEventListener('input', () => calculateScores(index));
+    document.getElementById(`difficultyInput${index}`).addEventListener('input', () => calculateScores(index));
+    document.getElementById(`compositionInput${index}`).addEventListener('input', () => calculateScores(index));
+    document.getElementById(`bonusInput${index}`).addEventListener('input', () => calculateScores(index));
+  });
+}
+
+
+    window.onload = displayScores;
+  </script>
+</head>
+<body>
+  <h1>Score Invoer Trampoline Valmat Baan 3</h1>
+  <div class="button-container">
+    <button class="button" onclick="clearScores()"> Reset Scores</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Ronde</th>
+        <th>Teamnaam</th>
+        <th>Leeftijdscategorie</th>
+        <th>Niveau</th>
+        <th>Druk</th>
+        <th>Totaal</th>
+        <th>Jury 1</th>
+        <th>Jury 2</th>
+        <th>Sub Jury</th>
+        <th>Moeilijkheid</th>
+        <th>Samenstelling</th>
+        <th>Bon/-HJ</th>
+        <th>Subscore</th>
+        <th>Opslaan</th>
+      </tr>
+    </thead>
+    <tbody id="scoresTableBody"></tbody>
+  </table>
+</body>
+</html>

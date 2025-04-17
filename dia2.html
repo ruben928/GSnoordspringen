@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Score Slideshow</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .slide-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transform: translateX(-100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+    }
+
+    .slide.enter {
+      transform: translateX(-100%);
+      opacity: 1;
+    }
+
+    .slide.enter-active {
+      transform: translateX(0);
+      transition: transform 1s ease-in-out;
+    }
+
+    .slide.exit {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .slide.exit-active {
+      transform: translateX(100%);
+      transition: transform 1s ease-in-out;
+    }
+
+    .active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .slide-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 40vw;
+    }
+
+    .text-container {
+      font-size: 6vw;
+      text-align: left;
+      max-width: 35vw;
+      line-height: 2;
+    }
+
+    .extra-image {
+      width: 70vw;
+      height: auto;
+      max-width: 600px;
+      opacity: 0.9;
+      align-self: flex-end;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .welcome-text {
+      font-size: 8vw;
+      margin-bottom: 20px;
+    }
+
+    .start-tijd-text {
+      font-size: 5vw;
+    }
+
+    #logo {
+      width: 20%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide-container">
+    <div id="slideshow"></div>
+  </div>
+
+  <script>
+    let slideIndex = 0;
+    let areScoresAvailable = false;
+
+    function getLatestScore(scores) {
+      const last = scores.slice(-1)[0] || {
+        team: "Nog geen team",
+        avgJury: 0,
+        difficulty: 0,
+        composition: 0,
+        bonus: 0,
+        totalScore: 0
+      };
+      return last;
+    }
+
+    function createSlideHTML(entry, index) {
+      let imageSrc = "";
+      if (index === 0) imageSrc = "airtrack.png";
+      if (index === 1) imageSrc = "toestel.png";
+      if (index === 2) imageSrc = "MD40.png";
+
+      return `
+        <div class="slide-content">
+          <div class="text-container">
+            <strong>${entry.team}</strong><br>
+            Gem. Jury: ${entry.avgJury.toFixed(2)}<br>
+            Moeilijkheid: ${entry.difficulty}<br>
+            Samenstelling: ${entry.composition}<br>
+            Bon/-HJ: ${entry.bonus}<br>
+            <strong>Totaal: ${entry.totalScore.toFixed(2)}</strong>
+          </div>
+          <img src="${imageSrc}" alt="Slide image" class="extra-image" />
+        </div>
+      `;
+    }
+
+    function renderSlides(scores, toestelScores, valmatScores) {
+  const slideshow = document.getElementById("slideshow");
+  slideshow.innerHTML = "";
+
+  const noScores = scores.length === 0 && toestelScores.length === 0 && valmatScores.length === 0;
+
+  if (noScores && !areScoresAvailable) {
+    areScoresAvailable = false;
+
+    const welcomeSlides = [
+      {
+        html: `
+          <div class="logo-container">
+            <div class="welcome-text">Welkom in Bolsward bij het FK ABC</div>
+            <div class="start-tijd-text">We wensen iedereen veel succes!</div>
+            <img id="logo" src="gslogo.png" alt="Logo" />
+          </div>
+        `
+      },
+      {
+        html: `
+          <div class="logo-container">
+            <div class="welcome-text">De middagwedstrijd start om 13:00</div>
+          
+            <img id="logo" src="gslogo.png" alt="Logo" />
+          </div>
+        `
+      }
+    ];
+
+    welcomeSlides.forEach(slideData => {
+      const slide = document.createElement("div");
+      slide.classList.add("slide");
+      slide.innerHTML = slideData.html;
+      slideshow.appendChild(slide);
+    });
+  } else {
+    areScoresAvailable = true;
+    const entries = [
+      getLatestScore(scores),
+      getLatestScore(toestelScores),
+      getLatestScore(valmatScores)
+    ];
+
+    entries.forEach((entry, index) => {
+      const slide = document.createElement("div");
+      slide.classList.add("slide");
+      slide.innerHTML = createSlideHTML(entry, index);
+      slideshow.appendChild(slide);
+    });
+  }
+
+  // Reset naar eerste slide
+  slideIndex = 0;
+  const slides = document.querySelectorAll(".slide");
+  if (slides.length > 0) {
+    slides[0].classList.add("active");
+    slides[0].style.display = "flex";
+  }
+}
+
+
+    function updateSlideshow() {
+      const allScores = JSON.parse(localStorage.getItem("allairtrack")) || [];
+      const toestelScores = JSON.parse(localStorage.getItem("allmttoestel")) || [];
+      const valmatScores = JSON.parse(localStorage.getItem("allMTvalmat")) || [];
+
+      renderSlides(allScores, toestelScores, valmatScores);
+    }
+
+    function slideNext() {
+      const slides = document.querySelectorAll(".slide");
+      if (slides.length < 2) return;
+
+      const currentSlide = slides[slideIndex];
+      currentSlide.classList.remove("active");
+      currentSlide.classList.add("exit");
+
+      requestAnimationFrame(() => {
+        currentSlide.classList.add("exit-active");
+      });
+
+      const nextIndex = (slideIndex + 1) % slides.length;
+      const nextSlide = slides[nextIndex];
+      nextSlide.classList.add("enter");
+
+      requestAnimationFrame(() => {
+        nextSlide.classList.add("enter-active");
+      });
+
+      setTimeout(() => {
+        currentSlide.classList.remove("exit", "exit-active");
+        currentSlide.style.display = "none";
+        nextSlide.classList.remove("enter", "enter-active");
+        nextSlide.classList.add("active");
+        nextSlide.style.display = "flex";
+        slideIndex = nextIndex;
+      }, 1000);
+    }
+
+    window.onload = () => {
+      updateSlideshow();
+      setInterval(slideNext, 10000); // hoe lang slide zichtbaar blijft
+      setInterval(updateSlideshow, 80000); // hoe vaak die update
+    };
+
+    window.addEventListener("scoresUpdatedAirtrack", updateSlideshow);
+    window.addEventListener("scoresUpdatedToestel", updateSlideshow);
+    window.addEventListener("scoresUpdatedValmat", updateSlideshow);
+  </script>
+</body>
+</html>

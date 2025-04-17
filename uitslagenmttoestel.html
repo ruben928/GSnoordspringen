@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Uitslagen Trampoline Springtoestel Baan 2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      padding: 60px;
+      color: #333;
+
+    }
+
+
+    h1 {
+      text-align: center;
+      font-size: 2.8em;
+    }
+
+    h2 {
+      margin-top: 50px;
+      color: #ff8000;
+      font-size: 2em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 1.8em;
+      box-sizing: border-box;
+    }
+
+    th {
+      background-color: #ff8000;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f0f0f0;
+    }
+
+    th:nth-child(1), td:nth-child(1) { width: 6%; }
+    th:nth-child(2), td:nth-child(2) { width: 16%; }
+    th:nth-child(3), td:nth-child(3) { width: 10%; }
+    th:nth-child(4), td:nth-child(4) { width: 10%; }
+    th:nth-child(5), td:nth-child(5) { width: 10%; }
+    th:nth-child(6), td:nth-child(6) { width: 10%; }
+    th:nth-child(7), td:nth-child(7) { width: 10%; }
+    th:nth-child(8), td:nth-child(8) { width: 10%; }
+    th:nth-child(9), td:nth-child(9) { width: 10%; }
+    th:nth-child(10), td:nth-child(10) { width: 10%; }
+  </style>
+</head>
+<body>
+    <body>
+        <body>
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; gap: 40px;">
+              <img src="gslogo.png" alt="Logo 1" style="height: 180px; margin-right: 160px;"> <!-- Ruimte toegevoegd -->
+              <h1 style="margin: 0; font-size: 5em;">Uitslagen Trampoline Springtoestel Baan 2 </h1>
+              <img src="kngu.png" alt="Logo 2" style="height: 180px; margin-left: 160px;">
+            </div>
+          
+            <div id="resultContainer"></div>
+          </body>
+          
+
+          <script>
+            function getRoundData() {
+              return JSON.parse(localStorage.getItem("roundData")) || [];
+            }
+          
+            function getGroupedScores() {
+              const scores = JSON.parse(localStorage.getItem("allmttoestel")) || [];  <!-- Gewijzigd hier -->
+              const roundData = getRoundData();
+          
+              const enriched = scores.map(score => {
+                const roundInfo = roundData.find(r => r.round === score.round);
+                return {
+                  ...score,
+                  ageCategory: roundInfo?.ageCategory || "Onbekend",
+                  level: roundInfo?.level || "Onbekend"
+                };
+              });
+          
+              const grouped = {};
+              enriched.forEach(score => {
+                const key = `${score.ageCategory} - ${score.level}`;
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(score);
+              });
+          
+              for (let key in grouped) {
+                grouped[key].sort((a, b) => b.totalScore - a.totalScore);
+              }
+          
+              return grouped;
+            }
+          
+            function displayGroupedScores() {
+              const resultContainer = document.getElementById("resultContainer");
+              const groupedScores = getGroupedScores();
+          
+              resultContainer.innerHTML = "";
+          
+              const ageOrder = ["Jeugd", "Junior", "Senioren"];
+              const levelOrder = ["C", "B", "A"];
+          
+              const sortedGroupKeys = Object.keys(groupedScores).sort((a, b) => {
+                const [ageA, levelA] = a.split(" - ");
+                const [ageB, levelB] = b.split(" - ");
+          
+                const ageIndexA = ageOrder.indexOf(ageA);
+                const ageIndexB = ageOrder.indexOf(ageB);
+          
+                if (ageIndexA !== ageIndexB) {
+                  return ageIndexA - ageIndexB;
+                }
+          
+                const levelIndexA = levelOrder.indexOf(levelA);
+                const levelIndexB = levelOrder.indexOf(levelB);
+          
+                return levelIndexA - levelIndexB;
+              });
+          
+              sortedGroupKeys.forEach(group => {
+                const scores = groupedScores[group];
+          
+                const groupTitle = document.createElement("h2");
+                groupTitle.textContent = group;
+                resultContainer.appendChild(groupTitle);
+          
+                const table = document.createElement("table");
+                table.innerHTML = `
+                  <thead>
+                    <tr>
+                      <th>Plaats</th>
+                      <th>Team</th>
+                      <th>Totaal</th>
+                      <th>Jury 1</th>
+                      <th>Jury 2</th>
+                      <th>Subt. Jury</th>
+                      <th>Moeilijkheid</th>
+                      <th>Samenstelling</th>
+                      <th>Bonus/-HJ</th>
+                      <th>Subtotaal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${scores.map((score, index) => {
+                      const jury1Raw = parseFloat(score.jury1) || 0;
+                      const jury2Raw = parseFloat(score.jury2) || 0;
+          
+                      const jury1 = 20 - jury1Raw;
+                      const jury2 = 20 - jury2Raw;
+                      const jurySubtotal = (jury1 + jury2) / 2;
+          
+                      const difficulty = parseFloat(score.difficulty) || 0;
+                      const composition = parseFloat(score.composition) || 0;
+                      const bonus = parseFloat(score.bonus) || 0;
+                      const totalSubtotal = difficulty + composition + bonus;
+          
+                      return `
+                        <tr>
+                          <td>${index + 1}</td>
+                          <td>${score.team}</td>
+                          <td>${score.totalScore.toFixed(2)}</td>
+                          <td>${jury1.toFixed(2)}</td>
+                          <td>${jury2.toFixed(2)}</td>
+                          <td>${jurySubtotal.toFixed(2)}</td>
+                          <td>${difficulty.toFixed(2)}</td>
+                          <td>${composition.toFixed(2)}</td>
+                          <td>${bonus.toFixed(2)}</td>
+                          <td>${totalSubtotal.toFixed(2)}</td>
+                        </tr>
+                      `;
+                    }).join("")}
+                  </tbody>
+                `;
+                resultContainer.appendChild(table);
+              });
+            }
+          
+            window.onload = displayGroupedScores;
+            window.addEventListener("storage", displayGroupedScores);
+          </script>
+          
+</body>
+</html>
