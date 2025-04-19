@@ -76,6 +76,7 @@
       text-align: left;
       max-width: 35vw;
       line-height: 2;
+      position: relative;
     }
 
     .extra-image {
@@ -103,9 +104,32 @@
       font-size: 5vw;
     }
 
-    #logo {
-      width: 20%;
+    .logo-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 10vw;
+      margin-top: 20px;
+    }
+
+    .logo-img {
+      width: 20vw;
+      max-width: 300px;
       height: auto;
+    }
+
+    .correction-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: red;
+      color: white;
+      font-size: 2vw;
+      padding: 0.5vw 1vw;
+      border-radius: 5px;
+      z-index: 10;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -133,13 +157,18 @@
 
     function createSlideHTML(entry, index) {
       let imageSrc = "";
-      if (index === 0) imageSrc = "airtrack.png";
-      if (index === 1) imageSrc = "toestel.png";
-      if (index === 2) imageSrc = "MD40.png";
+      if (index === 0) imageSrc = "images/airtrack.png";
+      if (index === 1) imageSrc = "images/toestel.png";
+      if (index === 2) imageSrc = "images/MD40.png";
+
+      const correctionBadge = entry.corrected
+        ? `<div class="correction-badge">Correctie</div>`
+        : "";
 
       return `
         <div class="slide-content">
           <div class="text-container">
+            ${correctionBadge}
             <strong>${entry.team}</strong><br>
             Gem. Jury: ${entry.avgJury.toFixed(2)}<br>
             Moeilijkheid: ${entry.difficulty}<br>
@@ -153,66 +182,69 @@
     }
 
     function renderSlides(scores, toestelScores, valmatScores) {
-  const slideshow = document.getElementById("slideshow");
-  slideshow.innerHTML = "";
+      const slideshow = document.getElementById("slideshow");
+      slideshow.innerHTML = "";
 
-  const noScores = scores.length === 0 && toestelScores.length === 0 && valmatScores.length === 0;
+      const noScores = scores.length === 0 && toestelScores.length === 0 && valmatScores.length === 0;
 
-  if (noScores && !areScoresAvailable) {
-    areScoresAvailable = false;
+      if (noScores && !areScoresAvailable) {
+        areScoresAvailable = false;
 
-    const welcomeSlides = [
-      {
-        html: `
-          <div class="logo-container">
-            <div class="welcome-text">Welkom in Bolsward bij het FK ABC</div>
-            <div class="start-tijd-text">We wensen iedereen veel succes!</div>
-            <img id="logo" src="gslogo.png" alt="Logo" />
-          </div>
-        `
-      },
-      {
-        html: `
-          <div class="logo-container">
-            <div class="welcome-text">De middagwedstrijd start om 13:00</div>
-          
-            <img id="logo" src="gslogo.png" alt="Logo" />
-          </div>
-        `
+        const welcomeSlides = [
+          {
+            html: `
+              <div class="logo-container">
+                <div class="welcome-text">Welkom in Bolsward bij het FK ABC</div>
+                <div class="start-tijd-text">Wij wensen iedereen veel succes!</div>
+                <div class="logo-row">
+                  <img class="logo-img" src="images/gslogo.png" alt="Logo" />
+                  <img class="logo-img" src="images/kngu.png" alt="kngu" />
+                </div>
+              </div>
+            `
+          },
+          {
+            html: `
+              <div class="logo-container">
+                <div class="welcome-text">De middagwedstrijd start om 13:00</div>
+                <div class="logo-row">
+                  <img class="logo-img" src="images/gslogo.png" alt="Logo" />
+                  <img class="logo-img" src="images/kngu.png" alt="kngu" />
+                </div>
+              </div>
+            `
+          }
+        ];
+
+        welcomeSlides.forEach(slideData => {
+          const slide = document.createElement("div");
+          slide.classList.add("slide");
+          slide.innerHTML = slideData.html;
+          slideshow.appendChild(slide);
+        });
+      } else {
+        areScoresAvailable = true;
+        const entries = [
+          getLatestScore(scores),
+          getLatestScore(toestelScores),
+          getLatestScore(valmatScores)
+        ];
+
+        entries.forEach((entry, index) => {
+          const slide = document.createElement("div");
+          slide.classList.add("slide");
+          slide.innerHTML = createSlideHTML(entry, index);
+          slideshow.appendChild(slide);
+        });
       }
-    ];
 
-    welcomeSlides.forEach(slideData => {
-      const slide = document.createElement("div");
-      slide.classList.add("slide");
-      slide.innerHTML = slideData.html;
-      slideshow.appendChild(slide);
-    });
-  } else {
-    areScoresAvailable = true;
-    const entries = [
-      getLatestScore(scores),
-      getLatestScore(toestelScores),
-      getLatestScore(valmatScores)
-    ];
-
-    entries.forEach((entry, index) => {
-      const slide = document.createElement("div");
-      slide.classList.add("slide");
-      slide.innerHTML = createSlideHTML(entry, index);
-      slideshow.appendChild(slide);
-    });
-  }
-
-  // Reset naar eerste slide
-  slideIndex = 0;
-  const slides = document.querySelectorAll(".slide");
-  if (slides.length > 0) {
-    slides[0].classList.add("active");
-    slides[0].style.display = "flex";
-  }
-}
-
+      slideIndex = 0;
+      const slides = document.querySelectorAll(".slide");
+      if (slides.length > 0) {
+        slides[0].classList.add("active");
+        slides[0].style.display = "flex";
+      }
+    }
 
     function updateSlideshow() {
       const allScores = JSON.parse(localStorage.getItem("allairtrack")) || [];
@@ -254,8 +286,8 @@
 
     window.onload = () => {
       updateSlideshow();
-      setInterval(slideNext, 10000); // hoe lang slide zichtbaar blijft
-      setInterval(updateSlideshow, 80000); // hoe vaak die update
+      setInterval(slideNext, 10000);
+      setInterval(updateSlideshow, 80000);
     };
 
     window.addEventListener("scoresUpdatedAirtrack", updateSlideshow);
